@@ -1,0 +1,786 @@
+import tkinter as tk
+import winsound
+import copy
+import json
+import os
+
+from tkinter.colorchooser import askcolor
+from datetime import datetime, timedelta
+
+
+# =====================================================
+# Application Constants
+# =====================================================
+
+LOADOUT_DIRECTORY = "loadouts"
+
+DEFAULT_LOADOUT_NAME = "Default"
+
+
+# =====================================================
+# Default Settings
+# =====================================================
+
+default_settings = {
+
+    "lunch": {
+
+        "hour": 12,
+        "minute": 0,
+        "second": 0
+
+    },
+
+    "audio": {
+
+        "button_click_enabled": True
+
+    },
+
+    "toggles": {
+
+        "live_preview_enabled": True,
+        "always_on_top": False
+
+    },
+
+    "colors": {
+
+        "current_time": "green",
+        "lunch_time": "blue",
+        "countdown": "black",
+        "status_message": "red"
+
+    }
+
+}
+
+settings = copy.deepcopy(
+    default_settings
+)
+
+working_settings = None
+
+settings_window = None
+
+
+# =====================================================
+# Loadout Functions
+# =====================================================
+
+def create_loadout_directory():
+
+    os.makedirs(
+        LOADOUT_DIRECTORY,
+        exist_ok=True
+    )
+
+
+def get_loadout_path(loadout_name):
+
+    return os.path.join(
+        LOADOUT_DIRECTORY,
+        f"{loadout_name}.json"
+    )
+
+
+def save_loadout(loadout_name):
+
+    create_loadout_directory()
+
+    loadout_path = get_loadout_path(
+        loadout_name
+    )
+
+    with open(
+        loadout_path,
+        "w"
+    ) as loadout_file:
+
+        json.dump(
+            settings,
+            loadout_file,
+            indent=4
+        )
+
+
+def load_loadout(loadout_name):
+
+    global settings
+
+    loadout_path = get_loadout_path(
+        loadout_name
+    )
+
+    with open(
+        loadout_path,
+        "r"
+    ) as loadout_file:
+
+        settings = json.load(
+            loadout_file
+        )
+
+
+def initialize_default_loadout():
+
+    create_loadout_directory()
+
+    default_path = get_loadout_path(
+        DEFAULT_LOADOUT_NAME
+    )
+
+    if not os.path.exists(
+        default_path
+    ):
+
+        with open(
+            default_path,
+            "w"
+        ) as loadout_file:
+
+            json.dump(
+                default_settings,
+                loadout_file,
+                indent=4
+            )
+
+
+def initialize_application():
+    
+    initialize_default_loadout()
+    
+    load_loadout(
+        DEFAULT_LOADOUT_NAME
+    )
+
+
+# =====================================================
+# Audio Functions
+# =====================================================
+
+def play_button_click():
+
+    if settings["audio"]["button_click_enabled"]:
+
+        winsound.Beep(
+            900,
+            20
+        )
+
+        winsound.Beep(
+            1000,
+            20
+        )
+
+
+# =====================================================
+# Apply Saved Settings
+# =====================================================
+
+def apply_saved_settings():
+
+    current_time_label.config(
+        fg=settings["colors"]["current_time"]
+    )
+
+    lunch_time_label.config(
+        fg=settings["colors"]["lunch_time"]
+    )
+
+    countdown_value_label.config(
+        fg=settings["colors"]["countdown"]
+    )
+
+    status_message_label.config(
+        fg=settings["colors"]["status_message"]
+    )
+
+    root_window.attributes(
+        "-topmost",
+        settings["toggles"]["always_on_top"]
+    )
+
+    button_sound_enabled.set(
+        settings["audio"]["button_click_enabled"]
+    )
+
+    live_preview_enabled.set(
+        settings["toggles"]["live_preview_enabled"]
+    )
+
+    always_on_top_enabled.set(
+        settings["toggles"]["always_on_top"]
+    )
+
+
+# =====================================================
+# Preview Functions
+# =====================================================
+
+def apply_preview_settings():
+
+    current_time_label.config(
+        fg=working_settings["colors"]["current_time"]
+    )
+
+    lunch_time_label.config(
+        fg=working_settings["colors"]["lunch_time"]
+    )
+
+    countdown_value_label.config(
+        fg=working_settings["colors"]["countdown"]
+    )
+
+    status_message_label.config(
+        fg=working_settings["colors"]["status_message"]
+    )
+
+
+# =====================================================
+# Color Picker Functions
+# =====================================================
+
+def choose_current_time_color():
+
+    play_button_click()
+
+    selected_color = askcolor()[1]
+
+    if selected_color:
+
+        working_settings["colors"]["current_time"] = selected_color
+
+        if live_preview_enabled.get():
+
+            apply_preview_settings()
+
+
+def choose_lunch_time_color():
+
+    play_button_click()
+
+    selected_color = askcolor()[1]
+
+    if selected_color:
+
+        working_settings["colors"]["lunch_time"] = selected_color
+
+        if live_preview_enabled.get():
+
+            apply_preview_settings()
+
+
+def choose_countdown_color():
+
+    play_button_click()
+
+    selected_color = askcolor()[1]
+
+    if selected_color:
+
+        working_settings["colors"]["countdown"] = selected_color
+
+        if live_preview_enabled.get():
+
+            apply_preview_settings()
+
+
+def choose_status_message_color():
+
+    play_button_click()
+
+    selected_color = askcolor()[1]
+
+    if selected_color:
+
+        working_settings["colors"]["status_message"] = selected_color
+
+        if live_preview_enabled.get():
+
+            apply_preview_settings()
+
+
+# =====================================================
+# Settings Functions
+# =====================================================
+
+def save_settings():
+
+    global settings
+    global settings_window
+
+    settings = copy.deepcopy(
+        working_settings
+    )
+
+    settings["audio"]["button_click_enabled"] = (
+        button_sound_enabled.get()
+    )
+
+    settings["toggles"]["live_preview_enabled"] = (
+        live_preview_enabled.get()
+    )
+
+    settings["toggles"]["always_on_top"] = (
+        always_on_top_enabled.get()
+    )
+
+    save_loadout(
+        DEFAULT_LOADOUT_NAME
+    )
+
+    apply_saved_settings()
+
+    play_button_click()
+
+    settings_window.destroy()
+
+    settings_window = None
+
+
+def cancel_settings():
+
+    global working_settings
+    global settings_window
+
+    working_settings = copy.deepcopy(
+        settings
+    )
+
+    apply_saved_settings()
+
+    play_button_click()
+
+    settings_window.destroy()
+
+    settings_window = None
+
+
+# =====================================================
+# Settings Window
+# =====================================================
+
+def open_settings_window():
+
+    global working_settings
+    global settings_window
+
+    if settings_window is not None:
+
+        if settings_window.winfo_exists():
+
+            settings_window.lift()
+
+            return
+
+    play_button_click()
+
+    working_settings = copy.deepcopy(
+        settings
+    )
+
+    settings_window = tk.Toplevel(
+        root_window
+    )
+
+    settings_window.title(
+        "Settings"
+    )
+
+    settings_window.geometry(
+        "550x650"
+    )
+
+    settings_title_label = tk.Label(
+        settings_window,
+        text="Settings",
+        font=("Arial", 14, "bold")
+    )
+
+    settings_title_label.pack(
+        pady=10
+    )
+
+    # =================================================
+    # Lunch Settings
+    # =================================================
+
+    lunch_settings_frame = tk.LabelFrame(
+        settings_window,
+        text="Lunch Settings"
+    )
+
+    lunch_settings_frame.pack(
+        fill="x",
+        padx=10,
+        pady=5
+    )
+
+    tk.Label(
+        lunch_settings_frame,
+        text="Future lunch settings will go here."
+    ).pack(
+        pady=10
+    )
+
+    # =================================================
+    # Color Settings
+    # =================================================
+
+    color_settings_frame = tk.LabelFrame(
+        settings_window,
+        text="Color Settings"
+    )
+
+    color_settings_frame.pack(
+        fill="x",
+        padx=10,
+        pady=5
+    )
+
+    tk.Button(
+        color_settings_frame,
+        text="Current Time Color",
+        command=choose_current_time_color
+    ).pack(
+        fill="x",
+        padx=10,
+        pady=2
+    )
+
+    tk.Button(
+        color_settings_frame,
+        text="Lunch Time Color",
+        command=choose_lunch_time_color
+    ).pack(
+        fill="x",
+        padx=10,
+        pady=2
+    )
+
+    tk.Button(
+        color_settings_frame,
+        text="Countdown Color",
+        command=choose_countdown_color
+    ).pack(
+        fill="x",
+        padx=10,
+        pady=2
+    )
+
+    tk.Button(
+        color_settings_frame,
+        text="Status Message Color",
+        command=choose_status_message_color
+    ).pack(
+        fill="x",
+        padx=10,
+        pady=2
+    )
+
+    # =================================================
+    # Audio Settings
+    # =================================================
+
+    audio_settings_frame = tk.LabelFrame(
+        settings_window,
+        text="Audio Settings"
+    )
+
+    audio_settings_frame.pack(
+        fill="x",
+        padx=10,
+        pady=5
+    )
+
+    tk.Label(
+        audio_settings_frame,
+        text="Custom two-tone click sound enabled."
+    ).pack(
+        pady=10
+    )
+
+    # =================================================
+    # Toggle Settings
+    # =================================================
+
+    toggle_settings_frame = tk.LabelFrame(
+        settings_window,
+        text="Toggle Settings"
+    )
+
+    toggle_settings_frame.pack(
+        fill="x",
+        padx=10,
+        pady=5
+    )
+
+    tk.Checkbutton(
+        toggle_settings_frame,
+        text="Enable Button Click Sounds",
+        variable=button_sound_enabled
+    ).pack(
+        anchor="w",
+        padx=10,
+        pady=2
+    )
+
+    tk.Checkbutton(
+        toggle_settings_frame,
+        text="Enable Live Preview",
+        variable=live_preview_enabled
+    ).pack(
+        anchor="w",
+        padx=10,
+        pady=2
+    )
+
+    tk.Checkbutton(
+        toggle_settings_frame,
+        text="Always On Top",
+        variable=always_on_top_enabled
+    ).pack(
+        anchor="w",
+        padx=10,
+        pady=2
+    )
+
+    # =================================================
+    # Loadout Management
+    # =================================================
+
+    loadout_settings_frame = tk.LabelFrame(
+        settings_window,
+        text="Loadout Management"
+    )
+
+    loadout_settings_frame.pack(
+        fill="x",
+        padx=10,
+        pady=5
+    )
+
+    tk.Label(
+        loadout_settings_frame,
+        text="Default loadout persistence is enabled."
+    ).pack(
+        pady=10
+    )
+
+    # =================================================
+    # Save / Cancel
+    # =================================================
+
+    button_frame = tk.Frame(
+        settings_window
+    )
+
+    button_frame.pack(
+        pady=15
+    )
+
+    save_button = tk.Button(
+        button_frame,
+        text="Save",
+        width=15,
+        command=save_settings
+    )
+
+    save_button.pack(
+        side="left",
+        padx=10
+    )
+
+    cancel_button = tk.Button(
+        button_frame,
+        text="Cancel",
+        width=15,
+        command=cancel_settings
+    )
+
+    cancel_button.pack(
+        side="left",
+        padx=10
+    )
+
+
+# =====================================================
+# Countdown Logic
+# =====================================================
+
+def update_lunch_countdown():
+
+    current_datetime = datetime.now()
+
+    lunch_datetime = current_datetime.replace(
+        hour=settings["lunch"]["hour"],
+        minute=settings["lunch"]["minute"],
+        second=settings["lunch"]["second"],
+        microsecond=0
+    )
+
+    if current_datetime >= lunch_datetime:
+
+        lunch_datetime += timedelta(
+            days=1
+        )
+
+    time_until_lunch = (
+        lunch_datetime -
+        current_datetime
+    )
+
+    total_remaining_seconds = int(
+        time_until_lunch.total_seconds()
+    )
+
+    current_time_string = (
+        current_datetime.strftime(
+            "%I:%M:%S %p"
+        )
+    )
+
+    lunch_time_string = (
+        lunch_datetime.strftime(
+            "%I:%M:%S %p"
+        )
+    )
+
+    hours_until_lunch = (
+        total_remaining_seconds // 3600
+    )
+
+    minutes_until_lunch = (
+        total_remaining_seconds % 3600
+    ) // 60
+
+    seconds_until_lunch = (
+        total_remaining_seconds % 60
+    )
+
+    current_time_label.config(
+        text=f"Current Time: {current_time_string}"
+    )
+
+    lunch_time_label.config(
+        text=f"Lunch Time: {lunch_time_string}"
+    )
+
+    countdown_value_label.config(
+        text=f"{hours_until_lunch:02}:{minutes_until_lunch:02}:{seconds_until_lunch:02}"
+    )
+
+    status_message_label.config(
+        text="Counting Down To Lunch"
+    )
+
+    root_window.after(
+        1000,
+        update_lunch_countdown
+    )
+
+
+# =====================================================
+# Main Window
+# =====================================================
+
+root_window = tk.Tk()
+
+root_window.title(
+    "Lunch Countdown v2.2"
+)
+
+root_window.geometry(
+    "400x300"
+)
+
+
+# =====================================================
+# Toggle Variables
+# =====================================================
+
+button_sound_enabled = tk.BooleanVar()
+
+live_preview_enabled = tk.BooleanVar()
+
+always_on_top_enabled = tk.BooleanVar()
+
+
+# =====================================================
+# Display Labels
+# =====================================================
+
+current_time_label = tk.Label(
+    root_window,
+    font=("Arial", 12)
+)
+
+current_time_label.pack(
+    pady=(15, 5)
+)
+
+lunch_time_label = tk.Label(
+    root_window,
+    font=("Arial", 12)
+)
+
+lunch_time_label.pack(
+    pady=5
+)
+
+countdown_header_label = tk.Label(
+    root_window,
+    text="Time Until Lunch",
+    font=("Arial", 12, "bold")
+)
+
+countdown_header_label.pack(
+    pady=(15, 5)
+)
+
+countdown_value_label = tk.Label(
+    root_window,
+    font=("Arial", 20)
+)
+
+countdown_value_label.pack(
+    pady=5
+)
+
+status_message_label = tk.Label(
+    root_window,
+    font=("Arial", 10)
+)
+
+status_message_label.pack(
+    pady=5
+)
+
+
+# =====================================================
+# Main Buttons
+# =====================================================
+
+settings_button = tk.Button(
+    root_window,
+    text="Settings",
+    command=open_settings_window
+)
+
+settings_button.pack(
+    pady=15
+)
+
+
+# =====================================================
+# Application Startup
+# =====================================================
+
+initialize_application()
+
+apply_saved_settings()
+
+update_lunch_countdown()
+
+root_window.mainloop()
