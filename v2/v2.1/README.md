@@ -237,4 +237,6 @@ Prepared For:
 
 - JSON-Based Settings Storage
 - Loadout Management
+
+- Versions 2.2 and 2.3 cancelled --> Major update --> version 3.0
 - Theme System
