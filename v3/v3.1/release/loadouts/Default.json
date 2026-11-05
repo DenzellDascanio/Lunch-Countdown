@@ -1,0 +1,21 @@
+{
+    "lunch": {
+        "hour": 12,
+        "minute": 0,
+        "second": 0,
+        "duration_minutes": 60
+    },
+    "audio": {
+        "button_click_enabled": true
+    },
+    "toggles": {
+        "live_preview_enabled": true,
+        "always_on_top": true
+    },
+    "colors": {
+        "current_time": "green",
+        "lunch_time": "blue",
+        "countdown": "black",
+        "status_message": "red"
+    }
+}
